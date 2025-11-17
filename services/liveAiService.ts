@@ -8,9 +8,9 @@ interface ConversationPart {
 // Maps our internal model names to their API model names
 const API_CONFIG: Record<string, { modelName: string; endpoint: string }> = {
   [Model.OpenAI]: { modelName: 'gpt-4o-mini', endpoint: 'https://api.openai.com/v1/chat/completions' },
-  [Model.Grok]: { modelName: 'grok-1', endpoint: 'https://api.x.ai/v1/chat/completions' },
+  [Model.Grok]: { modelName: 'grok-4-latest', endpoint: 'https://api.x.ai/v1/chat/completions' },
   [Model.DeepSeek]: { modelName: 'deepseek-chat', endpoint: 'https://api.deepseek.com/v1/chat/completions' },
-  [Model.ZAI]: { modelName: 'z-alpha-chat', endpoint: 'https://api.z.ai/v1/chat/completions' }, // Placeholder endpoint
+  [Model.ZAI]: { modelName: 'glm-4.6', endpoint: 'https://api.z.ai/api/paas/v4/chat/completions' },
 };
 
 
@@ -22,12 +22,6 @@ const callGenericApi = async (
   settings: FineTuneSettings
 ): Promise<string> => {
     
-    if (model === Model.ZAI) {
-        // Placeholder for the fictional Z.ai to avoid real network errors
-        await new Promise(resolve => setTimeout(resolve, 800));
-        return `[Placeholder] The live API for Z.ai at api.z.ai is conceptual. This response demonstrates a successful connection.`;
-    }
-
     const config = API_CONFIG[model];
     if (!config) {
         return `[Error] API configuration for ${model} is not defined.`;
@@ -51,6 +45,7 @@ const callGenericApi = async (
         model: config.modelName,
         messages,
         max_tokens: settings.maxOutputTokens,
+        temperature: settings.temperature,
     };
 
     try {
@@ -64,8 +59,16 @@ const callGenericApi = async (
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+            let errorText = `HTTP error! status: ${response.status}`;
+            try {
+                // Try to parse as JSON first
+                const errorData = await response.json();
+                errorText = errorData.error?.message || errorData.message || JSON.stringify(errorData);
+            } catch (e) {
+                // If parsing fails, use the raw text body
+                errorText = await response.text();
+            }
+            throw new Error(errorText);
         }
 
         const data = await response.json();
