@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Model, Message, ApiKeys, FineTuneSettings, ApiModes } from './types';
+import { Model, Message, ApiKeys, FineTuneSettings, ApiModes, AppError } from './types';
 import { MODELS } from './constants';
 import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
@@ -55,7 +55,7 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isChatting, setIsChatting] = useState(false);
   const [isThinking, setIsThinking] = useState<Model | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AppError | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const turnIndexRef = useRef(0);
@@ -85,7 +85,7 @@ const App: React.FC = () => {
           }
         } catch (err) {
           console.error(err);
-          setError("Could not load your settings from the database.");
+          setError({ message: "Could not load your settings from the database." });
         } finally {
           setIsDataLoaded(true);
         }
@@ -121,7 +121,7 @@ const App: React.FC = () => {
            console.log("Settings saved.");
         } catch (err) {
           console.error(err);
-          setError("Could not save your settings. Please check your connection.");
+          setError({ message: "Could not save your settings. Please check your connection." });
         }
       }, 1500);
     }
@@ -138,7 +138,7 @@ const App: React.FC = () => {
 
   const handleStartChat = () => {
     if (!chatTopic.trim()) {
-      setError('Please enter a chat topic.');
+      setError({ message: 'Please enter a chat topic.' });
       return;
     }
     setError(null);
@@ -193,37 +193,51 @@ const App: React.FC = () => {
     }
 
     try {
-      let responseContent: string;
-      if (currentTurnModel === Model.Gemini) {
-        if (!apiKeys[Model.Gemini]) throw new Error('Gemini API key is missing.');
-        responseContent = await generateGeminiResponse(apiKeys[Model.Gemini], masterPrompt, conversationHistory, fineTuneSettings);
-      } else {
-        const mode = apiModes[currentTurnModel as keyof ApiModes];
-        if (mode === 'simulated') {
-          if (!apiKeys[Model.Gemini]) throw new Error(`Gemini API key is required to simulate a response for ${currentTurnModel}.`);
-          responseContent = await generateSimulatedResponse(apiKeys[Model.Gemini], currentTurnModel, masterPrompt, conversationHistory, fineTuneSettings);
-        } else if (mode === 'live') {
-          const modelApiKey = apiKeys[currentTurnModel as keyof ApiKeys];
-          if (!modelApiKey) throw new Error(`${currentTurnModel} API key is required for live mode.`);
-          responseContent = await generateLiveResponse(modelApiKey, currentTurnModel, masterPrompt, conversationHistory, fineTuneSettings);
-        }
-        else {
-           responseContent = await generateMockResponse(currentTurnModel, masterPrompt, messages.map(m => m.content).join('\n'));
-        }
-      }
+        let responsePromise: Promise<string>;
+        let needsTimeout = true;
+        const API_TIMEOUT = 30000; // 30 seconds
 
-      setMessages(prev => [...prev, { author: currentTurnModel, content: responseContent, id: crypto.randomUUID() }]);
-      turnIndexRef.current = (turnIndexRef.current + 1) % MODELS.length;
+        if (currentTurnModel === Model.Gemini) {
+            if (!apiKeys[Model.Gemini]) throw new Error('Gemini API key is missing.');
+            responsePromise = generateGeminiResponse(apiKeys[Model.Gemini], masterPrompt, conversationHistory, fineTuneSettings);
+        } else {
+            const mode = apiModes[currentTurnModel as keyof ApiModes];
+            if (mode === 'simulated') {
+                if (!apiKeys[Model.Gemini]) throw new Error(`Gemini API key is required to simulate a response for ${currentTurnModel}.`);
+                responsePromise = generateSimulatedResponse(apiKeys[Model.Gemini], currentTurnModel, masterPrompt, conversationHistory, fineTuneSettings);
+            } else if (mode === 'live') {
+                const modelApiKey = apiKeys[currentTurnModel as keyof ApiKeys];
+                if (!modelApiKey) throw new Error(`${currentTurnModel} API key is required for live mode.`);
+                responsePromise = generateLiveResponse(modelApiKey, currentTurnModel, masterPrompt, conversationHistory, fineTuneSettings);
+            }
+            else { // mock mode
+               responsePromise = generateMockResponse(currentTurnModel, masterPrompt, messages.map(m => m.content).join('\n'));
+               needsTimeout = false;
+            }
+        }
+
+        const timeoutPromise = new Promise<string>((_, reject) => 
+            setTimeout(() => reject(new Error(`Response timed out after ${API_TIMEOUT / 1000} seconds.`)), API_TIMEOUT)
+        );
+        
+        const responseContent = await (needsTimeout 
+            ? Promise.race([responsePromise, timeoutPromise])
+            : responsePromise
+        );
+
+        setMessages(prev => [...prev, { author: currentTurnModel, content: responseContent, id: crypto.randomUUID() }]);
+        turnIndexRef.current = (turnIndexRef.current + 1) % MODELS.length;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setError(`Error from ${currentTurnModel}: ${errorMessage}`);
-      handleStopChat();
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+        setError({ model: currentTurnModel, message: errorMessage });
+        // On failure, proceed to the next model instead of stopping the chat
+        turnIndexRef.current = (turnIndexRef.current + 1) % MODELS.length;
     } finally {
-      if (isChatting) {
-        setIsThinking(null);
-      }
+        if (isChatting) {
+            setIsThinking(null);
+        }
     }
-  }, [apiKeys, isChatting, masterPrompt, messages, fineTuneSettings, apiModes]);
+}, [apiKeys, isChatting, masterPrompt, messages, fineTuneSettings, apiModes]);
 
   useEffect(() => {
     if (isChatting && messages.length > 0 && !isThinking) {

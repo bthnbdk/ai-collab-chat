@@ -37,3 +37,8 @@ export type ApiModes = {
   [Model.DeepSeek]: ApiMode;
   [Model.ZAI]: ApiMode;
 };
+
+export interface AppError {
+  model?: Model;
+  message: string;
+}

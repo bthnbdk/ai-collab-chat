@@ -1,12 +1,12 @@
 import React from 'react';
-import { Message, Model } from '../types';
+import { Message, Model, AppError } from '../types';
 import { MODEL_CONFIG } from '../constants';
 import MessageComponent from './Message';
 
 interface ChatWindowProps {
   messages: Message[];
   isThinking: Model | null;
-  error: string | null;
+  error: AppError | null;
   messagesEndRef: React.RefObject<HTMLDivElement>;
 }
 
@@ -54,7 +54,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isThinking, error, me
             {isThinking && <TypingIndicator model={isThinking} />}
             {error && (
                 <div className="bg-red-900/50 border border-red-500 text-red-300 p-3 rounded-md text-sm">
-                    <strong>Error:</strong> {error}
+                    <strong>{error.model ? `Error from ${error.model}` : 'Error'}:</strong> {error.message}
                 </div>
             )}
             <div ref={messagesEndRef} />

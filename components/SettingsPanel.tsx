@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '@auth0/auth0-react';
 import { ApiKeys, Model, FineTuneSettings, ApiModes, ApiMode } from '../types';
-import { MODELS } from '../constants';
 import { LogoutIcon } from './icons';
 import Readme from './Readme';
 
@@ -49,6 +48,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [isTuningOpen, setIsTuningOpen] = useState(false);
   const [isReadmeOpen, setIsReadmeOpen] = useState(false);
 
+  // Explicitly define the display order for models in the settings panel.
+  const modelsToDisplay = [Model.Gemini, Model.Grok, Model.OpenAI, Model.DeepSeek, Model.ZAI];
+
   const handleApiKeyChange = (model: Model, value: string) => {
     setApiKeys({ ...apiKeys, [model]: value });
   };
@@ -95,7 +97,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <div>
           <h2 className="text-lg font-semibold text-gray-200 mb-2">AI Models & Keys</h2>
           <div className="space-y-3">
-            {[Model.Gemini, ...MODELS.filter(m => m !== Model.Gemini)].map(model => (
+            {modelsToDisplay.map(model => (
               <div key={model} className="bg-gray-700/50 p-3 rounded-md">
                 <label htmlFor={`${model}-key`} className="block text-sm font-medium text-gray-300 mb-2">{model}</label>
                 
