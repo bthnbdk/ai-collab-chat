@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { GeminiSettings, Model } from "../types";
+import { FineTuneSettings, Model } from "../types";
 
 interface ConversationPart {
     role: 'user' | 'model';
@@ -11,7 +11,7 @@ export const generateSimulatedResponse = async (
   modelToSimulate: Model,
   systemInstruction: string,
   conversationHistory: ConversationPart[],
-  settings: GeminiSettings
+  settings: FineTuneSettings
 ): Promise<string> => {
   if (!apiKey) {
     throw new Error("Gemini API key not provided for simulation.");
@@ -35,7 +35,8 @@ ${systemInstruction}
         systemInstruction: simulationInstruction,
         temperature: settings.temperature,
         topP: settings.topP,
-        topK: settings.topK
+        topK: settings.topK,
+        maxOutputTokens: settings.maxOutputTokens,
       },
     });
 

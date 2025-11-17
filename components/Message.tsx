@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { marked } from 'marked';
 import { Message } from '../types';
 import { MODEL_CONFIG } from '../constants';
 import { CopyIcon, CheckIcon } from './icons';
@@ -20,8 +21,13 @@ const MessageComponent: React.FC<MessageProps> = ({ message }) => {
     }).catch(err => console.error('Failed to copy text: ', err));
   };
 
+  const renderedContent = useMemo(() => {
+    const rawMarkup = marked.parse(content, { gfm: true, breaks: true }) as string;
+    return { __html: rawMarkup };
+  }, [content]);
+
   const containerClasses = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
-  const bubbleClasses = `max-w-xl p-3 rounded-lg whitespace-pre-wrap ${
+  const bubbleClasses = `max-w-xl p-3 rounded-lg prose prose-sm prose-invert prose-headings:my-2 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-pre:bg-gray-800 prose-pre:p-2 prose-pre:rounded-md prose-code:before:content-[''] prose-code:after:content-[''] whitespace-pre-wrap ${
     isUser
       ? 'bg-blue-800 text-white rounded-br-none'
       : `bg-gray-700 text-gray-200 rounded-bl-none`
@@ -37,9 +43,7 @@ const MessageComponent: React.FC<MessageProps> = ({ message }) => {
       <div className={`flex flex-col flex-1 ${isUser ? 'items-end' : 'items-start'}`}>
         {!isUser && <p className="text-sm font-bold text-gray-400 mb-1">{author}</p>}
         <div className="group relative">
-          <div className={bubbleClasses}>
-            <p className="text-sm">{content}</p>
-          </div>
+          <div className={bubbleClasses} dangerouslySetInnerHTML={renderedContent} />
            <button
             onClick={handleCopy}
             className={`absolute top-1 p-1.5 rounded-md bg-black/20 text-gray-300 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 ${isUser ? 'left-1' : 'right-1'}`}

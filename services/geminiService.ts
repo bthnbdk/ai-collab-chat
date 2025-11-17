@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { GeminiSettings } from "../types";
+import { FineTuneSettings } from "../types";
 
 interface ConversationPart {
     role: 'user' | 'model';
@@ -10,7 +10,7 @@ export const generateGeminiResponse = async (
   apiKey: string,
   systemInstruction: string,
   conversationHistory: ConversationPart[],
-  settings: GeminiSettings
+  settings: FineTuneSettings
 ): Promise<string> => {
   if (!apiKey) {
     throw new Error("Gemini API key not provided.");
@@ -25,7 +25,8 @@ export const generateGeminiResponse = async (
         systemInstruction,
         temperature: settings.temperature,
         topP: settings.topP,
-        topK: settings.topK
+        topK: settings.topK,
+        maxOutputTokens: settings.maxOutputTokens,
       },
     });
 

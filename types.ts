@@ -21,15 +21,19 @@ export type ApiKeys = {
   [Model.ZAI]: string;
 };
 
-export interface GeminiSettings {
+export interface FineTuneSettings {
   temperature: number;
   topK: number;
   topP: number;
+  maxOutputTokens: number;
+  responseDelay: number; // in seconds
 }
 
+export type ApiMode = 'mock' | 'simulated' | 'live';
+
 export type ApiModes = {
-  [Model.Grok]: 'mock' | 'live';
-  [Model.OpenAI]: 'mock' | 'live';
-  [Model.DeepSeek]: 'mock' | 'live';
-  [Model.ZAI]: 'mock' | 'live';
+  [Model.Grok]: ApiMode;
+  [Model.OpenAI]: ApiMode;
+  [Model.DeepSeek]: ApiMode;
+  [Model.ZAI]: ApiMode;
 };
