@@ -8,7 +8,7 @@ interface ConversationPart {
 // Maps our internal model names to their API model names
 const API_CONFIG: Record<string, { modelName: string; endpoint: string }> = {
   [Model.OpenAI]: { modelName: 'gpt-5-nano', endpoint: 'https://api.openai.com/v1/chat/completions' },
-  [Model.Grok]: { modelName: 'grok-4-latest', endpoint: 'https://api.x.ai/v1/chat/completions' },
+  [Model.Grok]: { modelName: 'grok-4-fast-reasoning', endpoint: 'https://api.x.ai/v1/chat/completions' },
   [Model.DeepSeek]: { modelName: 'deepseek-chat', endpoint: 'https://api.deepseek.com/v1/chat/completions' },
   [Model.ZAI]: { modelName: 'glm-4.5-air', endpoint: 'https://api.z.ai/api/paas/v4/chat/completions' },
 };

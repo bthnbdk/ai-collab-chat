@@ -13,15 +13,15 @@ const defaultFineTuneSettings: FineTuneSettings = {
   temperature: 0.7,
   topK: 40,
   topP: 0.9,
-  maxOutputTokens: 1024,
+  maxOutputTokens: 512,
   responseDelay: 1,
 };
 
 const defaultApiModes: ApiModes = {
-  [Model.Grok]: 'mock',
-  [Model.OpenAI]: 'mock',
-  [Model.DeepSeek]: 'mock',
-  [Model.ZAI]: 'mock',
+  [Model.Grok]: 'live',
+  [Model.OpenAI]: 'live',
+  [Model.DeepSeek]: 'live',
+  [Model.ZAI]: 'live',
 };
 
 const defaultApiKeys: ApiKeys = {
