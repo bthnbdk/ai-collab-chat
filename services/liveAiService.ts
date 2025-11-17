@@ -27,9 +27,8 @@ const callGenericApi = async (
         return `[Error] API configuration for ${model} is not defined.`;
     }
     
-    // Grok API uses a different role name ('human' instead of 'user')
+    // Standardize roles for API compatibility
     const roleMapping = (role: 'user' | 'model') => {
-        if (model === Model.Grok) return role === 'user' ? 'human' : 'assistant';
         return role === 'user' ? 'user' : 'assistant';
     };
 
@@ -44,9 +43,16 @@ const callGenericApi = async (
     const body: { [key: string]: any } = {
         model: config.modelName,
         messages,
-        max_tokens: settings.maxOutputTokens,
         temperature: settings.temperature,
+        stream: false, // Ensure non-streaming response for stability
     };
+    
+    // Handle model-specific parameter differences
+    if (model === Model.OpenAI) {
+        body.max_completion_tokens = settings.maxOutputTokens;
+    } else {
+        body.max_tokens = settings.maxOutputTokens;
+    }
 
     try {
         const response = await fetch(config.endpoint, {
