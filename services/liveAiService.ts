@@ -7,10 +7,10 @@ interface ConversationPart {
 
 // Maps our internal model names to their API model names
 const API_CONFIG: Record<string, { modelName: string; endpoint: string }> = {
-  [Model.OpenAI]: { modelName: 'gpt-4o-mini', endpoint: 'https://api.openai.com/v1/chat/completions' },
+  [Model.OpenAI]: { modelName: 'gpt-5-nano', endpoint: 'https://api.openai.com/v1/chat/completions' },
   [Model.Grok]: { modelName: 'grok-4-latest', endpoint: 'https://api.x.ai/v1/chat/completions' },
   [Model.DeepSeek]: { modelName: 'deepseek-chat', endpoint: 'https://api.deepseek.com/v1/chat/completions' },
-  [Model.ZAI]: { modelName: 'glm-4.6', endpoint: 'https://api.z.ai/api/paas/v4/chat/completions' },
+  [Model.ZAI]: { modelName: 'glm-4.5-air', endpoint: 'https://api.z.ai/api/paas/v4/chat/completions' },
 };
 
 
@@ -59,14 +59,14 @@ const callGenericApi = async (
         });
 
         if (!response.ok) {
+            const responseClone = response.clone(); // Clone the response to read body twice
             let errorText = `HTTP error! status: ${response.status}`;
             try {
-                // Try to parse as JSON first
                 const errorData = await response.json();
                 errorText = errorData.error?.message || errorData.message || JSON.stringify(errorData);
             } catch (e) {
-                // If parsing fails, use the raw text body
-                errorText = await response.text();
+                // If parsing JSON fails, read the body as plain text from the clone
+                errorText = await responseClone.text();
             }
             throw new Error(errorText);
         }

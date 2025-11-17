@@ -44,7 +44,15 @@ interface ConversationPart {
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [apiKeys, setApiKeys] = useState<ApiKeys>(defaultApiKeys);
+  const [apiKeys, setApiKeys] = useState<ApiKeys>(() => {
+    try {
+        const savedKeys = localStorage.getItem('apiKeys');
+        return savedKeys ? JSON.parse(savedKeys) : defaultApiKeys;
+    } catch (error) {
+        console.error('Failed to load API keys from localStorage', error);
+        return defaultApiKeys;
+    }
+  });
   const [masterPrompt, setMasterPrompt] = useState(defaultMasterPrompt);
   const [fineTuneSettings, setFineTuneSettings] = useState<FineTuneSettings>(defaultFineTuneSettings);
   const [apiModes, setApiModes] = useState<ApiModes>(defaultApiModes);
@@ -56,6 +64,14 @@ const App: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const turnIndexRef = useRef(0);
+
+  useEffect(() => {
+    try {
+        localStorage.setItem('apiKeys', JSON.stringify(apiKeys));
+    } catch (error) {
+        console.error('Failed to save API keys to localStorage', error);
+    }
+  }, [apiKeys]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -30,9 +30,9 @@ const Readme: React.FC<ReadmeProps> = ({ onClose }) => {
             Welcome to AI Collab Chat! This application allows you to start a discussion on any topic and have multiple AI models collaborate to explore ideas and find solutions.
           </p>
 
-          <h3 className="text-xl font-semibold">Simple Access</h3>
+          <h3 className="text-xl font-semibold">Simple & Secure Access</h3>
           <p>
-            This application uses a single, static password for access. There are no user accounts, and your settings (like API keys) are stored only for your current session and will be cleared when you close the browser tab.
+            This application uses a single, static password for access. There are no user accounts. Your API keys are securely saved in your browser's local storage, so you only need to enter them once. They are never stored on a server.
           </p>
 
           <h3 className="text-xl font-semibold">AI Modes Explained</h3>
@@ -50,7 +50,8 @@ const Readme: React.FC<ReadmeProps> = ({ onClose }) => {
           </ul>
 
           <h3 className="text-xl font-semibold">API Keys</h3>
-          <ul className="list-disc pl-5 space-y-2">
+           <ul className="list-disc pl-5 space-y-2">
+            <li>Your API keys are saved to your browser's local storage and will be remembered for your next session.</li>
             <li><strong>Gemini Key:</strong> This key is <strong>required</strong> for Gemini's own turns and to power the "Simulated" mode for all other AIs.</li>
             <li><strong>Other Keys (OpenAI, etc.):</strong> These are only needed if you want to use the "Live" mode for that specific AI.</li>
           </ul>
