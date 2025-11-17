@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
 import { Model, Message, ApiKeys, FineTuneSettings, ApiModes, AppError } from './types';
 import { MODELS } from './constants';
 import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
+import Login from './components/Login';
 import { generateGeminiResponse } from './services/geminiService';
 import { generateMockResponse } from './services/mockAiService';
 import { generateSimulatedResponse } from './services/simulationService';
@@ -37,16 +37,13 @@ const defaultMasterPrompt = `You are an expert AI assistant participating in a c
 - **Be concise and constructive.** Keep your responses focused and to the point. Add unique value with each turn.
 - **Use Markdown for formatting** when it helps clarify your response (e.g., lists, bolding, code blocks).`;
 
-
-// FIX: Define a shared interface for conversation history parts to ensure type safety when passing to AI services.
 interface ConversationPart {
     role: 'user' | 'model';
     parts: { text: string }[];
 }
 
 const App: React.FC = () => {
-  const { user, isAuthenticated, isLoading, loginWithRedirect, logout, getAccessTokenSilently } = useAuth0();
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [apiKeys, setApiKeys] = useState<ApiKeys>(defaultApiKeys);
   const [masterPrompt, setMasterPrompt] = useState(defaultMasterPrompt);
   const [fineTuneSettings, setFineTuneSettings] = useState<FineTuneSettings>(defaultFineTuneSettings);
@@ -59,74 +56,6 @@ const App: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const turnIndexRef = useRef(0);
-  // FIX: Explicitly initialize useRef with undefined to resolve a potential type inference issue causing an error.
-  const saveTimeoutRef = useRef<number | undefined>(undefined);
-
-  // Load user data when user is authenticated
-  useEffect(() => {
-    if (isAuthenticated && !isDataLoaded) {
-      const fetchUserData = async () => {
-        try {
-          const token = await getAccessTokenSilently();
-          const response = await fetch(`/.netlify/functions/get-user-settings`, {
-             headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            setApiKeys(data.api_keys || defaultApiKeys);
-            setMasterPrompt(data.master_prompt || defaultMasterPrompt);
-            setFineTuneSettings(data.fine_tune_settings || defaultFineTuneSettings);
-            setApiModes(data.api_modes || defaultApiModes);
-          } else if (response.status === 404) {
-            console.log("New user, using default settings.");
-          } else {
-            throw new Error(`Failed to load settings: ${response.statusText}`);
-          }
-        } catch (err) {
-          console.error(err);
-          setError({ message: "Could not load your settings from the database." });
-        } finally {
-          setIsDataLoaded(true);
-        }
-      };
-      fetchUserData();
-    }
-  }, [isAuthenticated, isDataLoaded, getAccessTokenSilently]);
-
-  // Debounced save user data whenever it changes
-  useEffect(() => {
-    if (isAuthenticated && isDataLoaded) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = window.setTimeout(async () => {
-        try {
-          const token = await getAccessTokenSilently();
-          const settingsPayload = {
-            apiKeys,
-            masterPrompt,
-            fineTuneSettings,
-            apiModes
-          };
-          const response = await fetch('/.netlify/functions/save-user-settings', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(settingsPayload),
-          });
-          if (!response.ok) {
-            throw new Error('Failed to save settings to the database.');
-          }
-           console.log("Settings saved.");
-        } catch (err) {
-          console.error(err);
-          setError({ message: "Could not save your settings. Please check your connection." });
-        }
-      }, 1500);
-    }
-     return () => clearTimeout(saveTimeoutRef.current);
-  }, [apiKeys, masterPrompt, fineTuneSettings, apiModes, isAuthenticated, isDataLoaded, getAccessTokenSilently]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -181,7 +110,6 @@ const App: React.FC = () => {
     const currentTurnModel = MODELS[turnIndexRef.current];
     setIsThinking(currentTurnModel);
 
-    // FIX: Explicitly type conversationHistory to ensure the 'role' property is correctly inferred as 'user' | 'model'.
     const conversationHistory: ConversationPart[] = messages.map(msg => ({
       role: msg.author === Model.User ? 'user' : 'model',
       parts: [{ text: msg.content }],
@@ -230,7 +158,6 @@ const App: React.FC = () => {
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
         setError({ model: currentTurnModel, message: errorMessage });
-        // On failure, proceed to the next model instead of stopping the chat
         turnIndexRef.current = (turnIndexRef.current + 1) % MODELS.length;
     } finally {
         if (isChatting) {
@@ -249,47 +176,23 @@ const App: React.FC = () => {
       }
     }
   }, [messages, isChatting, isThinking, getNextResponse, fineTuneSettings.responseDelay]);
-  
-  const WelcomeComponent = () => (
-     <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-      <div className="w-full max-w-sm p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg text-center">
-          <h1 className="text-3xl font-bold">Welcome to AI Collab Chat</h1>
-          <p className="mt-2 text-gray-400">Please log in to start collaborating with AI.</p>
-           <button
-              onClick={() => loginWithRedirect()}
-              className="w-full mt-4 px-4 py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
-            >
-              Login / Sign Up
-            </button>
-      </div>
-    </div>
-  )
 
-  if (isLoading) {
-    return (
-       <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        <div className="text-xl">Initializing Auth Service...</div>
-      </div>
-    );
-  }
+  const handleLogin = (password: string) => {
+    // Hardcoded password check
+    if (password === 'ai-collab') {
+      setIsLoggedIn(true);
+      return true;
+    }
+    return false;
+  };
 
-  if (!isAuthenticated) {
-    return <WelcomeComponent />;
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
   }
   
-  if (isAuthenticated && !isDataLoaded) {
-     return (
-       <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        <div className="text-xl">Loading your settings...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col md:flex-row h-screen font-sans bg-gray-900 text-gray-100">
       <SettingsPanel
-        currentUser={user}
-        onLogout={() => logout({ logoutParams: { returnTo: window.location.origin } })}
         apiKeys={apiKeys}
         setApiKeys={setApiKeys}
         masterPrompt={masterPrompt}

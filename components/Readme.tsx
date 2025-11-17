@@ -30,9 +30,9 @@ const Readme: React.FC<ReadmeProps> = ({ onClose }) => {
             Welcome to AI Collab Chat! This application allows you to start a discussion on any topic and have multiple AI models collaborate to explore ideas and find solutions.
           </p>
 
-          <h3 className="text-xl font-semibold">Secure User Login</h3>
+          <h3 className="text-xl font-semibold">Simple Access</h3>
           <p>
-            This application uses Auth0 for secure authentication. All your settings, including API keys and preferences, will be securely saved to a database and linked to your account.
+            This application uses a single, static password for access. There are no user accounts, and your settings (like API keys) are stored only for your current session and will be cleared when you close the browser tab.
           </p>
 
           <h3 className="text-xl font-semibold">AI Modes Explained</h3>
@@ -63,19 +63,6 @@ const Readme: React.FC<ReadmeProps> = ({ onClose }) => {
             <li><strong>Response Delay:</strong> Adds a pause (in seconds) between each AI's turn, making the conversation easier to follow.</li>
           </ul>
           
-          <div className="bg-yellow-900/40 border border-yellow-600 text-yellow-300 p-4 rounded-lg">
-             <h3 className="text-xl font-semibold text-yellow-200 mt-0">Troubleshooting Login Issues</h3>
-             <p>If you're having trouble logging in, please check these two things in your Auth0 Dashboard:</p>
-             <ol className="list-decimal pl-5 space-y-2 mt-2">
-                <li>
-                    <strong>Application Type:</strong> Go to <strong>Applications</strong>, select your app, and ensure the "Application Type" is set to <strong>Single Page Application</strong>.
-                </li>
-                 <li>
-                    <strong>Allowed Callback URLs:</strong> Make sure your Netlify site URL (e.g., <code>https://your-site-name.netlify.app</code>) is listed. No <code>/callback</code> path is needed.
-                </li>
-             </ol>
-          </div>
-
           <div className="text-center mt-6">
             <button 
               onClick={onClose}

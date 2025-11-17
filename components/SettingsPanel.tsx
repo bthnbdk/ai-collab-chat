@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
-import { User } from '@auth0/auth0-react';
 import { ApiKeys, Model, FineTuneSettings, ApiModes, ApiMode } from '../types';
-import { LogoutIcon } from './icons';
 import Readme from './Readme';
 
 interface SettingsPanelProps {
-  currentUser?: User;
-  onLogout: () => void;
   apiKeys: ApiKeys;
   setApiKeys: (keys: ApiKeys) => void;
   masterPrompt: string;
@@ -26,8 +22,6 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
-  currentUser,
-  onLogout,
   apiKeys,
   setApiKeys,
   masterPrompt,
@@ -72,14 +66,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       <aside className="w-full md:w-1/3 lg:w-1/4 p-4 bg-gray-800 border-r border-gray-700 flex flex-col space-y-4 overflow-y-auto">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold text-white">AI Collab Chat</h1>
-          {currentUser && (
-            <div className="flex items-center space-x-2 text-sm">
-              <span className="text-gray-400 hidden lg:inline truncate" title={currentUser.email}>{currentUser.email}</span>
-              <button onClick={onLogout} className="p-2 rounded-full hover:bg-gray-700" title="Logout">
-                <LogoutIcon />
-              </button>
-            </div>
-          )}
         </div>
         
         <div>
