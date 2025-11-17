@@ -1,0 +1,5 @@
+{
+  "name": "AI Collab Chat",
+  "description": "A chat interface where multiple AI models collaborate on a given topic. Users can set a master prompt to guide the conversation and provide API keys for each service.",
+  "requestFramePermissions": []
+}
