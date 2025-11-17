@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface ReadmeProps {
   onClose: () => void;
@@ -11,18 +12,19 @@ const Readme: React.FC<ReadmeProps> = ({ onClose }) => {
       onClick={onClose}
     >
       <div 
-        className="bg-gray-800 w-full max-w-2xl max-h-[90vh] rounded-lg shadow-xl p-6 text-gray-300 overflow-y-auto"
+        className="bg-card w-full max-w-2xl max-h-[90vh] rounded-lg shadow-xl p-6 text-card-foreground overflow-y-auto"
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
       >
         <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-white">How It Works</h2>
-            <button 
+            <h2 className="text-2xl font-bold">How It Works</h2>
+            <Button 
+              variant="ghost"
+              size="icon"
               onClick={onClose} 
-              className="text-gray-400 hover:text-white transition-colors"
               aria-label="Close"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
+            </Button>
         </div>
         
         <div className="prose prose-invert prose-sm md:prose-base max-w-none space-y-4">
@@ -65,12 +67,9 @@ const Readme: React.FC<ReadmeProps> = ({ onClose }) => {
           </ul>
           
           <div className="text-center mt-6">
-            <button 
-              onClick={onClose}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition-colors"
-            >
+            <Button onClick={onClose}>
               Got it!
-            </button>
+            </Button>
           </div>
         </div>
       </div>

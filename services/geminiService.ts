@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { FineTuneSettings } from "../types";
+import { FineTuneSettings } from "@/types";
 
 interface ConversationPart {
     role: 'user' | 'model';
@@ -35,10 +35,10 @@ export const generateGeminiResponse = async (
     console.error("Error calling Gemini API:", error);
     if (error instanceof Error) {
         if (error.message.includes('API key not valid')) {
-          return `Failed to get response from Gemini. Error: The provided API key is not valid. Please check the key in the settings panel.`;
+          throw new Error(`The provided API key is not valid. Please check the key in the settings panel.`);
         }
-        return `Failed to get response from Gemini. Error: ${error.message}`;
+        throw new Error(error.message);
     }
-    return "An unknown error occurred while contacting the Gemini API.";
+    throw new Error("An unknown error occurred while contacting the Gemini API.");
   }
 };

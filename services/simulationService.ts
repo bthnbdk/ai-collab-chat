@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { FineTuneSettings, Model } from "../types";
+import { FineTuneSettings, Model } from "@/types";
 
 interface ConversationPart {
     role: 'user' | 'model';
@@ -45,10 +45,10 @@ ${systemInstruction}
     console.error(`Error simulating ${modelToSimulate} with Gemini API:`, error);
     if (error instanceof Error) {
         if (error.message.includes('API key not valid')) {
-          return `Failed to get simulated response for ${modelToSimulate}. Error: The provided Gemini API key is not valid.`;
+          throw new Error(`The provided Gemini API key is not valid.`);
         }
-        return `Failed to get simulated response for ${modelToSimulate}. Error: ${error.message}`;
+        throw new Error(error.message);
     }
-    return `An unknown error occurred while simulating ${modelToSimulate}.`;
+    throw new Error(`An unknown error occurred while simulating ${modelToSimulate}.`);
   }
 };
