@@ -1,0 +1,17 @@
+# This file provides the essential build and deploy settings for Netlify.
+
+[build]
+  # This project is a static site (HTML, TSX via importmap) and does not need a build command.
+  # This line prevents the "Missing script: build" error.
+  command = ""
+
+  # The main index.html file is in the root of the project.
+  publish = "."
+
+[functions]
+  # Tells Netlify where to find the serverless functions.
+  directory = "netlify/functions"
+
+# It's a best practice to specify a stable Node.js version for builds.
+[build.environment]
+  NODE_VERSION = "20"
