@@ -38,6 +38,12 @@ const defaultMasterPrompt = `You are an expert AI assistant participating in a c
 - **Use Markdown for formatting** when it helps clarify your response (e.g., lists, bolding, code blocks).`;
 
 
+// FIX: Define a shared interface for conversation history parts to ensure type safety when passing to AI services.
+interface ConversationPart {
+    role: 'user' | 'model';
+    parts: { text: string }[];
+}
+
 const App: React.FC = () => {
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout, getAccessTokenSilently } = useAuth0();
   const [isDataLoaded, setIsDataLoaded] = useState(false);
@@ -53,7 +59,8 @@ const App: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const turnIndexRef = useRef(0);
-  const saveTimeoutRef = useRef<number>();
+  // FIX: Explicitly initialize useRef with undefined to resolve a potential type inference issue causing an error.
+  const saveTimeoutRef = useRef<number | undefined>(undefined);
 
   // Load user data when user is authenticated
   useEffect(() => {
@@ -174,7 +181,8 @@ const App: React.FC = () => {
     const currentTurnModel = MODELS[turnIndexRef.current];
     setIsThinking(currentTurnModel);
 
-    const conversationHistory = messages.map(msg => ({
+    // FIX: Explicitly type conversationHistory to ensure the 'role' property is correctly inferred as 'user' | 'model'.
+    const conversationHistory: ConversationPart[] = messages.map(msg => ({
       role: msg.author === Model.User ? 'user' : 'model',
       parts: [{ text: msg.content }],
     }));
