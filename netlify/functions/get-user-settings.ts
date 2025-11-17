@@ -58,7 +58,3 @@ export default async (req: Request, context: Context) => {
     });
   }
 };
-
-export const config = {
-  path: "/.netlify/functions/get-user-settings"
-};

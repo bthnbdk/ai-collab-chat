@@ -36,7 +36,3 @@ export default async (req: Request, context: Context) => {
     headers
   });
 };
-
-export const config = {
-  path: "/.netlify/functions/auth0-config"
-};
