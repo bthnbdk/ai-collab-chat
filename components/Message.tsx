@@ -26,7 +26,16 @@ const MessageComponent: React.FC<MessageProps> = ({ message }) => {
       return { __html: `<p><strong>Error from ${author}:</strong> ${content}</p>` };
     }
     try {
-        const rawMarkup = marked.parse(content || '', { gfm: true, breaks: true }) as string;
+        let rawMarkup = '';
+        // Check if marked is available and has the parse method
+        // This guards against potential import issues or version mismatches
+        if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+             rawMarkup = marked.parse(content || '', { gfm: true, breaks: true }) as string;
+        } else {
+             // Fallback if marked is not working
+             rawMarkup = content || '';
+             console.warn('marked library not available or parse method missing');
+        }
         return { __html: rawMarkup };
     } catch (error) {
         console.error("Error parsing markdown:", error);

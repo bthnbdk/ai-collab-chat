@@ -134,30 +134,30 @@ export const useStore = create<AppState>()(
         const currentTurnModel = MODELS[turnIndex];
         set({ isThinking: currentTurnModel });
 
-        const conversationHistory = messages.map(msg => ({
-          role: msg.author === Model.User ? 'user' : 'model' as 'user' | 'model',
-          parts: [{ text: msg.content }],
-        }));
-        
         try {
             let responseContent: string = "";
             
             if (currentTurnModel === Model.Gemini) {
-                responseContent = await generateGeminiResponse(apiKeys.Gemini, masterPrompt, conversationHistory, fineTuneSettings);
+                responseContent = await generateGeminiResponse(apiKeys.Gemini, masterPrompt, messages, fineTuneSettings);
             } else {
                 const mode = apiModes[currentTurnModel as keyof ApiModes];
                 if (mode === 'simulated') {
-                    responseContent = await generateSimulatedResponse(apiKeys.Gemini, currentTurnModel, masterPrompt, conversationHistory, fineTuneSettings);
+                    responseContent = await generateSimulatedResponse(apiKeys.Gemini, currentTurnModel, masterPrompt, messages, fineTuneSettings);
                 } else if (mode === 'live') {
                     const modelApiKey = apiKeys[currentTurnModel as keyof ApiKeys];
-                    responseContent = await generateLiveResponse(modelApiKey, currentTurnModel, masterPrompt, conversationHistory, fineTuneSettings);
+                    responseContent = await generateLiveResponse(modelApiKey, currentTurnModel, masterPrompt, messages, fineTuneSettings);
                 }
                 else { // mock mode
                    responseContent = await generateMockResponse(currentTurnModel, masterPrompt, messages.map(m => m.content).join('\n'));
                 }
             }
             
-            addMessage({ author: currentTurnModel, content: responseContent || "(No content)", id: crypto.randomUUID() });
+            // Basic validation to ensure we don't display empty bubbles if API fails silently
+            if (!responseContent || !responseContent.trim()) {
+                 responseContent = "(No content returned)";
+            }
+            
+            addMessage({ author: currentTurnModel, content: responseContent, id: crypto.randomUUID() });
             set({ turnIndex: (turnIndex + 1) % MODELS.length });
 
         } catch (err) {

@@ -5,10 +5,8 @@ import Login from '@/components/Login';
 import { useStore } from '@/store';
 
 const App: React.FC = () => {
-  const { isLoggedIn, handleLogin } = useStore(state => ({
-    isLoggedIn: state.isLoggedIn,
-    handleLogin: state.handleLogin,
-  }));
+  const isLoggedIn = useStore(state => state.isLoggedIn);
+  const handleLogin = useStore(state => state.handleLogin);
 
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;

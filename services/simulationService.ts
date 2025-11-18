@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { FineTuneSettings, Model } from "@/types";
+import { FineTuneSettings, Model, Message } from "@/types";
 
 interface ConversationPart {
     role: 'user' | 'model';
@@ -10,7 +10,7 @@ export const generateSimulatedResponse = async (
   apiKey: string,
   modelToSimulate: Model,
   systemInstruction: string,
-  conversationHistory: ConversationPart[],
+  messages: Message[],
   settings: FineTuneSettings
 ): Promise<string> => {
   if (!apiKey) {
@@ -26,6 +26,27 @@ ${systemInstruction}
 ---
   `;
   
+  // Construct history. 
+  // Since we are simulating 'modelToSimulate' using Gemini, 
+  // any message ACTUALLY from 'modelToSimulate' (in previous turns) should be treated as 'model' (self).
+  // All others are 'user' with attribution.
+  const conversationHistory: ConversationPart[] = messages.map(msg => {
+      if (msg.author === modelToSimulate) {
+          return {
+              role: 'model',
+              parts: [{ text: msg.content }]
+          };
+      } else {
+          const text = msg.author === Model.User 
+              ? msg.content 
+              : `[${msg.author}]: ${msg.content}`;
+          return {
+              role: 'user',
+              parts: [{ text }]
+          };
+      }
+  });
+
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
@@ -40,7 +61,7 @@ ${systemInstruction}
       },
     });
 
-    return response.text;
+    return response.text || "";
   } catch (error) {
     console.error(`Error simulating ${modelToSimulate} with Gemini API:`, error);
     if (error instanceof Error) {
