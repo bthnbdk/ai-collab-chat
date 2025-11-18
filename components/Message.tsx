@@ -25,8 +25,13 @@ const MessageComponent: React.FC<MessageProps> = ({ message }) => {
     if (isError) {
       return { __html: `<p><strong>Error from ${author}:</strong> ${content}</p>` };
     }
-    const rawMarkup = marked.parse(content, { gfm: true, breaks: true }) as string;
-    return { __html: rawMarkup };
+    try {
+        const rawMarkup = marked.parse(content || '', { gfm: true, breaks: true }) as string;
+        return { __html: rawMarkup };
+    } catch (error) {
+        console.error("Error parsing markdown:", error);
+        return { __html: `<p>${content}</p>` };
+    }
   }, [content, isError, author]);
 
   const containerClasses = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;

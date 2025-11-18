@@ -44,10 +44,10 @@ const defaultFineTuneSettings: FineTuneSettings = {
 };
 
 const defaultApiModes: ApiModes = {
-  [Model.Grok]: 'live',
-  [Model.OpenAI]: 'live',
-  [Model.DeepSeek]: 'live',
-  [Model.ZAI]: 'live',
+  [Model.Grok]: 'mock',
+  [Model.OpenAI]: 'mock',
+  [Model.DeepSeek]: 'mock',
+  [Model.ZAI]: 'mock',
 };
 
 const defaultApiKeys: ApiKeys = {
@@ -140,7 +140,7 @@ export const useStore = create<AppState>()(
         }));
         
         try {
-            let responseContent: string;
+            let responseContent: string = "";
             
             if (currentTurnModel === Model.Gemini) {
                 responseContent = await generateGeminiResponse(apiKeys.Gemini, masterPrompt, conversationHistory, fineTuneSettings);
@@ -157,7 +157,7 @@ export const useStore = create<AppState>()(
                 }
             }
             
-            addMessage({ author: currentTurnModel, content: responseContent, id: crypto.randomUUID() });
+            addMessage({ author: currentTurnModel, content: responseContent || "(No content)", id: crypto.randomUUID() });
             set({ turnIndex: (turnIndex + 1) % MODELS.length });
 
         } catch (err) {
