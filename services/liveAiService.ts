@@ -2,9 +2,9 @@ import { Model, FineTuneSettings, Message } from '@/types';
 
 const API_CONFIG: Record<string, { modelName: string; endpoint: string }> = {
   [Model.OpenAI]: { modelName: 'gpt-4o-mini', endpoint: 'https://api.openai.com/v1/chat/completions' },
-  [Model.Grok]: { modelName: 'grok-beta', endpoint: 'https://api.x.ai/v1/chat/completions' },
+  [Model.Grok]: { modelName: 'grok-4-fast-reasoning', endpoint: 'https://api.x.ai/v1/chat/completions' },
   [Model.DeepSeek]: { modelName: 'deepseek-chat', endpoint: 'https://api.deepseek.com/chat/completions' },
-  [Model.ZAI]: { modelName: 'glm-4-air', endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions' },
+  [Model.ZAI]: { modelName: 'glm-4.6', endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions' },
 };
 
 const callGenericApi = async (
